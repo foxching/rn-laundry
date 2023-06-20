@@ -1,7 +1,17 @@
 import { View, Text, Image, Pressable } from "react-native";
 import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart, decrementQuantity, incrementQuantity } from "../store/CartReducer";
+import { decrementQty, incrementQty } from "../store/productReducer";
 
 const DressItem = ({ item }) => {
+  const dispatch = useDispatch();
+  const cart = useSelector((state) => state.cart.cart);
+  const addItemToCart = () => {
+    dispatch(addToCart(item)); // cart
+    dispatch(incrementQty(item)); // product
+  };
+
   return (
     <View>
       <Pressable
@@ -33,25 +43,104 @@ const DressItem = ({ item }) => {
           >
             {item.name}
           </Text>
-          <Text style={{width:60, fontSize:15, color:"gray"}}>{item.price}</Text>
+          <Text style={{ width: 60, fontSize: 15, color: "gray" }}>
+            {item.price}
+          </Text>
         </View>
 
-        <Pressable style={{ width: 80 }}>
-          <Text
+        {cart.some((c) => c.id === item.id) ? (
+          <Pressable
             style={{
-              borderColor: "gray",
-              borderWidth: 0.8,
-              borderRadius: 4,
-              marginVertical: 10,
-              textAlign: "center",
-              padding: 5,
-              color: "#088F8F",
-              fontWeight: "bold",
+              flexDirection: "row",
+              paddingHorizontal: 10,
+              paddingVertical: 5,
             }}
           >
-            Add
-          </Text>
-        </Pressable>
+            <Pressable
+              onPress={() => {
+                dispatch(decrementQuantity(item)); // cart
+                dispatch(decrementQty(item)); // product
+              }}
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 13,
+                borderColor: "#BEBEBE",
+                backgroundColor: "#E0E0E0",
+                justifyContent: "center",
+                alignContent: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 20,
+                  color: "#088F8F",
+                  paddingHorizontal: 6,
+                  fontWeight: "600",
+                  textAlign: "center",
+                }}
+              >
+                -
+              </Text>
+            </Pressable>
+            <Pressable>
+              <Text
+                style={{
+                  fontSize: 19,
+                  color: "#088F8F",
+                  paddingHorizontal: 8,
+                  fontWeight: "600",
+                }}
+              >
+                {item.quantity}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                dispatch(incrementQuantity(item)); // cart
+                dispatch(incrementQty(item)); //product
+              }}
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 13,
+                borderColor: "#BEBEBE",
+                backgroundColor: "#E0E0E0",
+                justifyContent: "center",
+                alignContent: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 20,
+                  color: "#088F8F",
+                  paddingHorizontal: 6,
+                  fontWeight: "600",
+                  textAlign: "center",
+                }}
+              >
+                +
+              </Text>
+            </Pressable>
+          </Pressable>
+        ) : (
+          <Pressable onPress={addItemToCart} style={{ width: 80 }}>
+            <Text
+              style={{
+                borderColor: "gray",
+                borderWidth: 0.8,
+                borderRadius: 4,
+                marginVertical: 10,
+                textAlign: "center",
+                padding: 5,
+                color: "#088F8F",
+                fontWeight: "bold",
+              }}
+            >
+              Add
+            </Text>
+          </Pressable>
+        )}
       </Pressable>
     </View>
   );
