@@ -1,4 +1,5 @@
 import {
+  Alert,
   View,
   Text,
   TextInput,
@@ -11,12 +12,45 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 const RegisterScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const navigation = useNavigation();
+
+  const register = () => {
+    if (email === "" || password === "" || phone === "") {
+      Alert.alert(
+        "Empty or invalid",
+        "All fields are required",
+        [
+          {
+            text: "Cancel",
+            onPress: () => console.log("Cancel Pressed"),
+            style: "cancel",
+          },
+          { text: "OK", onPress: () => console.log("OK Pressed") },
+        ],
+        { cancelable: false }
+      );
+    }
+    createUserWithEmailAndPassword(auth, email, password).then(
+      (userCredential) => {
+        console.log("user credential", userCredential);
+        const user = userCredential._tokenResponse.email;
+        const myUserUid = auth.currentUser.uid;
+
+        setDoc(doc(db, "users", `${myUserUid}`), {
+          email: user,
+          phone: phone,
+        });
+      }
+    );
+  };
 
   return (
     <SafeAreaView
@@ -104,6 +138,7 @@ const RegisterScreen = () => {
         </View>
 
         <Pressable
+          onPress={register}
           style={{
             width: 200,
             backgroundColor: "#318CE7",
@@ -119,18 +154,21 @@ const RegisterScreen = () => {
           </Text>
         </Pressable>
 
-        <Pressable onPress={() => navigation.goBack()} style={{ marginTop: 20 }}>
-            <Text
-              style={{
-                textAlign: "center",
-                fontSize: 17,
-                color: "gray",
-                fontWeight: "500",
-              }}
-            >
-              Already have a account? Sign in
-            </Text>
-          </Pressable>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={{ marginTop: 20 }}
+        >
+          <Text
+            style={{
+              textAlign: "center",
+              fontSize: 17,
+              color: "gray",
+              fontWeight: "500",
+            }}
+          >
+            Already have a account? Sign in
+          </Text>
+        </Pressable>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
