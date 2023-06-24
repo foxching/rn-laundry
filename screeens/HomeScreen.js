@@ -18,11 +18,16 @@ import DressItem from "../components/DressItem";
 import { useSelector, useDispatch } from "react-redux";
 import { getProducts } from "../store/productReducer";
 import { services } from "../data/services";
+import { useNavigation } from "@react-navigation/native";
 
 const HomeScreen = () => {
   const cart = useSelector((state) => state.cart.cart);
+  const total = cart
+    .map((item) => item.quantity * item.price)
+    .reduce((curr, prev) => curr + prev, 0);
   const product = useSelector((state) => state.product.product);
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const [displayCurrentAddress, setDisplayCurrentAddress] = useState(
     "We are loading your location"
   );
@@ -37,12 +42,11 @@ const HomeScreen = () => {
     if (product.length > 0) return;
 
     const fetchProducts = async () => {
-      services.map((service) => dispatch(getProducts(service)))
-    }
+      services.map((service) => dispatch(getProducts(service)));
+    };
     fetchProducts();
-  }, [])
+  }, []);
 
- 
   const checkifLocationEnabled = async () => {
     let enabled = await Location.hasServicesEnabledAsync();
     if (!enabled) {
@@ -98,54 +102,96 @@ const HomeScreen = () => {
     }
   };
 
-
   return (
-    <ScrollView style={{ backgroundColor: "#F0F0F0", flex: 1, marginTop: 50 }}>
-      {/* Location and Profile */}
-      <View style={{ flexDirection: "row", alignItems: "center", padding: 10 }}>
-        <MaterialIcons name="location-on" size={30} color="#fd5c63" />
-        <View>
-          <Text style={{ fontSize: 18, fontWeight: "600" }}>Home</Text>
-          <Text>{displayCurrentAddress}</Text>
+    <>
+      <ScrollView
+        style={{ backgroundColor: "#F0F0F0", flex: 1, marginTop: 50 }}
+      >
+        {/* Location and Profile */}
+        <View
+          style={{ flexDirection: "row", alignItems: "center", padding: 10 }}
+        >
+          <MaterialIcons name="location-on" size={30} color="#fd5c63" />
+          <View>
+            <Text style={{ fontSize: 18, fontWeight: "600" }}>Home</Text>
+            <Text>{displayCurrentAddress}</Text>
+          </View>
+
+          <Pressable style={{ marginLeft: "auto", marginRight: 7 }}>
+            <Image
+              style={{ width: 40, height: 40, borderRadius: 20 }}
+              source={{
+                uri: "https://lh3.googleusercontent.com/ogw/AAEL6sh_yqHq38z35QMy5Fnb8ZIxicdxCIVM9PeBD2j-=s64-c-mo",
+              }}
+            />
+          </Pressable>
+        </View>
+        {/* Search Bar */}
+        <View
+          style={{
+            padding: 10,
+            margin: 10,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderWidth: 0.8,
+            borderColor: "#C0C0C0",
+            borderRadius: 7,
+          }}
+        >
+          <TextInput placeholder="Search Items"></TextInput>
+          <Feather name="search" size={24} color="#fd5c63" />
         </View>
 
-        <Pressable style={{ marginLeft: "auto", marginRight: 7 }}>
-          <Image
-            style={{ width: 40, height: 40, borderRadius: 20 }}
-            source={{
-              uri: "https://lh3.googleusercontent.com/ogw/AAEL6sh_yqHq38z35QMy5Fnb8ZIxicdxCIVM9PeBD2j-=s64-c-mo",
-            }}
-          />
+        {/* Image Carousel */}
+        <Carousel />
+
+        {/* Services */}
+        <Services />
+
+        {/* Render all the products */}
+        {product.map((service, index) => (
+          <DressItem item={service} key={index} />
+        ))}
+      </ScrollView>
+
+      {/* Footer */}
+      {total === 0 ? null : (
+        <Pressable
+          style={{
+            backgroundColor: "#088F8F",
+            padding: 10,
+            marginBottom: 40,
+            margin: 15,
+            borderRadius: 7,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <View>
+            <Text style={{ fontSize: 17, fontWeight: "600", color: "white" }}>
+              {cart?.length} items | $ {total}
+            </Text>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: "400",
+                color: "white",
+                marginVertical: 6,
+              }}
+            >
+              extra charges might apply
+            </Text>
+          </View>
+          <Pressable onPress={() => navigation.navigate("Pickup")}>
+            <Text style={{ fontSize: 17, fontWeight: "600", color: "white" }}>
+              Proceed to pickup
+            </Text>
+          </Pressable>
         </Pressable>
-      </View>
-      {/* Search Bar */}
-      <View
-        style={{
-          padding: 10,
-          margin: 10,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          borderWidth: 0.8,
-          borderColor: "#C0C0C0",
-          borderRadius: 7,
-        }}
-      >
-        <TextInput placeholder="Search Items"></TextInput>
-        <Feather name="search" size={24} color="#fd5c63" />
-      </View>
-
-      {/* Image Carousel */}
-      <Carousel />
-
-      {/* Services */}
-      <Services />
-
-      {/* Render all the products */}
-      {product.map((service, index) => (
-        <DressItem item={service} key={index} />
-      ))}
-    </ScrollView>
+      )}
+    </>
   );
 };
 
