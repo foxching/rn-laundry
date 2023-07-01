@@ -3,8 +3,14 @@ import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
-import { decrementQuantity, incrementQuantity } from "../store/CartReducer";
+import {
+  cleanCart,
+  decrementQuantity,
+  incrementQuantity,
+} from "../store/CartReducer";
 import { decrementQty, incrementQty } from "../store/productReducer";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
 
 const CartScreen = () => {
   const cart = useSelector((state) => state.cart.cart);
@@ -14,6 +20,22 @@ const CartScreen = () => {
     .reduce((curr, prev) => curr + prev, 0);
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const userUid = auth.currentUser.uid;
+
+  const placeOrder = async () => {
+    navigation.navigate("Order");
+    dispatch(cleanCart());
+    await setDoc(
+      doc(db, "users", `${userUid}`),
+      {
+        orders: { ...cart },
+        pickUpDetails: route.params,
+      },
+      {
+        merge: true,
+      }
+    );
+  };
 
   return (
     <>
@@ -334,7 +356,7 @@ const CartScreen = () => {
             </Text>
           </View>
 
-          <Pressable onPress={() => console.log('ok')}>
+          <Pressable onPress={placeOrder}>
             <Text style={{ fontSize: 17, fontWeight: "600", color: "white" }}>
               Place Order
             </Text>
