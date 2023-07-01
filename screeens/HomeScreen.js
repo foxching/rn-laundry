@@ -19,9 +19,12 @@ import { useSelector, useDispatch } from "react-redux";
 import { getProducts } from "../store/productReducer";
 import { services } from "../data/services";
 import { useNavigation } from "@react-navigation/native";
+import { collection, getDoc, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 
 const HomeScreen = () => {
   const cart = useSelector((state) => state.cart.cart);
+  const [items,setItems] = useState([]);
   const total = cart
     .map((item) => item.quantity * item.price)
     .reduce((curr, prev) => curr + prev, 0);
@@ -42,7 +45,12 @@ const HomeScreen = () => {
     if (product.length > 0) return;
 
     const fetchProducts = async () => {
-      services.map((service) => dispatch(getProducts(service)));
+      const colRef = collection(db,"types");
+      const docsSnap = await getDocs(colRef);
+      docsSnap.forEach((doc) => {
+        items.push(doc.data());
+      });
+      items?.map((service) => dispatch(getProducts(service)));
     };
     fetchProducts();
   }, []);
@@ -117,7 +125,7 @@ const HomeScreen = () => {
             <Text>{displayCurrentAddress}</Text>
           </View>
 
-          <Pressable style={{ marginLeft: "auto", marginRight: 7 }}>
+          <Pressable onPress={() => navigation.navigate("Profile")} style={{ marginLeft: "auto", marginRight: 7 }}>
             <Image
               style={{ width: 40, height: 40, borderRadius: 20 }}
               source={{
